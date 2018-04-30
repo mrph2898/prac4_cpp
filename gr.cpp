@@ -3,6 +3,7 @@
 #include <cctype>
 #include <stdexcept>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <algorithm>
 
@@ -21,14 +22,15 @@ class Token
 {
     type_of_lex type_name;
     std::string lexem;
-//    long position;
+    long position;
 public:
-    Token() : type_name(LEX_NULL), lexem(" ")/*, position(0)*/ {}
-    Token(type_of_lex type, const std::string &lex/*, long pos*/) : type_name(type), lexem(lex)/*, position(pos) */{}
+    Token() : type_name(LEX_NULL), lexem(" "), position(0) {}
+    Token(type_of_lex type, const std::string &lex, long pos) : type_name(type), lexem(lex), position(pos) {}
     std::string get_lexem() { return lexem; }
     type_of_lex get_type() { return type_name; }
     void set_lexem(std::string lex) { lexem = lex; }
     void set_type(type_of_lex type_) { type_name = type_; }
+    long get_pos() { return position; }
 };
 
 #define ERROR(x,y) \
@@ -45,7 +47,7 @@ class TokenIterator : public std::iterator<
                                 TokenIterator&>
 {
     Token token;
-//    long position;
+    static long position_of_cin;
     bool is_it_eof;
 public:
     Token get_token()
@@ -53,16 +55,16 @@ public:
         int c;
         type_of_lex type;
         std::string lexem;
+        long position;
         char state = 'S';
         while (state != 'H') {
             c = std::cin.peek();
             switch (state) {
             case 'S':
                 c = std::cin.get();
+                position_of_cin++;
                 if (!isspace(c)){
-                    /*if ((position = std::cin.tellg()) == -1) {
-                        throw std::runtime_error("Failure with file position");
-                    }*/
+                    position = position_of_cin;
                     if (isdigit(c)) {
                         lexem.push_back(c);
                         state = 'N';
@@ -86,8 +88,10 @@ public:
                         type = LEX_END;
                         state = 'H';
                     } else {
-                        std::string h = "Unexpected character ";
+                        std::string h = "Unexpected character <<";
                         h.push_back(c);
+                        h.append(">> in position ");
+                        h.append(std::to_string(position));
                         throw std::runtime_error(h);
                     }
                 }
@@ -95,6 +99,7 @@ public:
             case 'N':
                 if (isdigit(c)) {
                     c = std::cin.get();
+                    position_of_cin++;
                     lexem.push_back(c);
                 } else {
                     type = LEX_NUM;
@@ -104,6 +109,7 @@ public:
             case 'I':
                 if (isalnum(c)) {
                     c = std::cin.get();
+                    position_of_cin++;
                     lexem.push_back(c);
                 } else {
                     type = LEX_ID;
@@ -112,10 +118,10 @@ public:
                 break;
             }
         }
-        return Token(type, lexem/*, position*/);
+        return Token(type, lexem, position);
     }
     TokenIterator(bool eof = false) : token(get_token()), is_it_eof(eof) {}
-    TokenIterator(const TokenIterator &ti) : token(ti.token)/*, position(ti.position)*/, is_it_eof(ti.is_it_eof) {}
+    TokenIterator(const TokenIterator &ti) : token(ti.token), is_it_eof(ti.is_it_eof) {}
     Token operator *() const { return token; }
     TokenIterator& operator ++() {
         token = get_token();
@@ -134,6 +140,7 @@ public:
 
 };
 #undef ERROR
+long TokenIterator::position_of_cin = 0;
 
 class TokenSequence : public Iterable <
                       Token,
@@ -152,10 +159,16 @@ public:
 };
 
 int main(int argc, char *argv[]){
+try
+{
     std::cout <<argc << argv[0] << std::endl;
     TokenIterator ti {};
     while ((*ti).get_type() != LEX_END) {
+        std::cout << (*ti).get_pos() << std::endl;
         std::cout << (*ti).get_lexem() << std::endl;
         ++ti;
     }
+} catch (std::runtime_error &re) {
+    std::cout << "\x1b[31m" << re.what() << "\x1b[0m" << std::endl;
+}
 }
