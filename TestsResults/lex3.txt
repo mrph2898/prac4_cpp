@@ -1,0 +1,3 @@
+Position number 1	i
+Position number 3	=
+Position number 5	12345

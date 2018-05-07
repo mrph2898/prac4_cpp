@@ -1,0 +1,4 @@
+Position number 1	ai
+Position number 3	[
+Position number 4	k
+Position number 5	]

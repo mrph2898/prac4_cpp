@@ -3,10 +3,10 @@ CC="g++-7"
 OBJDIR="./Objfiles"
 TESTDIR="./Tests"
 TESTRES="./TestsResults"
-SW="./SourceCode/gr.cpp"
-OW="$OBJDIR/gr.o"
-PW="$OBJDIR/gr.out"
-OPTIONS_CC="-O2 -Wall -Werror -pedantic-errors -Wextra -fsanitize=undefined -std=c++17 -ftrapv  -g -o"
+SW="./SourceCode/test_lexer.cpp"
+OW="$OBJDIR/tl.o"
+PW="$OBJDIR/tl"
+OPTIONS_CC="-O2 -Wall -Werror -pedantic-errors -Wextra -std=c++17 -ftrapv -g -o"
 CHECKMEM="valgrind"
 OPTIONS_CHECKMEM="--leak-check=full --track-origins=yes --show-leak-kinds=all"
 clean=0
@@ -34,11 +34,11 @@ then
         if [ $SW -nt $PW ]
         then
             $CC $SW -fprofile-arcs -ftest-coverage -c $OPTIONS_CC $OW --coverage
-            $CC $OW -fprofile-arcs -ftest-coverage  $OPTIONS_CC $PW --coverage
+            $CC $OW -fprofile-arcs -ftest-coverage $OPTIONS_CC $PW --coverage
         fi
         dir=0
     else
-        echo You are in wrong direction!!!
+        echo -e "\e[31m You are in wrong directory!!! \e[0m"
         dir=1
     fi
     if [ $dir = 0 ]
@@ -49,16 +49,16 @@ then
             then
                 if [ $1 = "run" ]
                 then
-                    echo Lets begin!
+                    echo -e "\e[32m Lexer testing \e[0m"
                     if [ ! -z $2 ]
                     then
                         if [ $2 = "lcov" ]
                         then
                             if [ -d ./lcov ]
                             then
-                                echo lcov was installed
+                                echo -e "\e[32m lcov have been already installed \e[0m"
                             else
-                                echo installing lcov
+                                echo -e "\e[32m installing lcov \e[0m"
                                 git clone https://github.com/linux-test-project/lcov.git
                            fi
                         fi
@@ -70,12 +70,12 @@ then
                     if [ ! -z $2 ]
                     then
                         ./lcov/bin/lcov --directory $OBJDIR --zerocounters
-                    fi    
+                    fi
                     $CHECKMEM $OPTIONS_CHECKMEM $PW <$TESTDIR/Lex_test1 >$TESTRES/lex1.txt 2>$TESTRES/val1.txt
                     $CHECKMEM $OPTIONS_CHECKMEM $PW <$TESTDIR/Lex_test2 >$TESTRES/lex2.txt 2>$TESTRES/val2.txt
                     $CHECKMEM $OPTIONS_CHECKMEM $PW <$TESTDIR/Lex_test3 >$TESTRES/lex3.txt 2>$TESTRES/val3.txt
                     $CHECKMEM $OPTIONS_CHECKMEM $PW <$TESTDIR/Lex_test4 >$TESTRES/lex4.txt 2>$TESTRES/val4.txt
-                    $CHECKMEM $OPTIONS_CHECKMEM $PW <$TESTDIR/Lex_test5 >$TESTRES/lex5.txt 2>$TESTRES/val4.txt
+                    $CHECKMEM $OPTIONS_CHECKMEM $PW <$TESTDIR/Lex_test5 >$TESTRES/lex5.txt 2>$TESTRES/val5.txt
                 if [ ! -z $2 ]
                 then
                     if [ $2 = "lcov" ]
