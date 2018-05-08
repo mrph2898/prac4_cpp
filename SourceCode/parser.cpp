@@ -21,10 +21,6 @@ struct Tree
     pNode cur_root;
     pNode root;
     Tree() : cur_root(nullptr), root(cur_root) {}
-    /*Tree(const Node &n)
-    {
-        root = std::shared_ptr<Node>(n);
-    }*/
     void add_operator(Node &n)
     {
         n.left_node = cur_root;
@@ -39,9 +35,11 @@ struct Tree
         (*cur_root).right_node = std::make_shared<Node>(n);
     }
     void first_node(Node &n) { cur_root = std::make_shared<Node>(n); }
+    void print_expr(pNode);
+    void print_tree(pNode);
 };
 
-void print_expr(pNode pn)
+void Tree::print_expr(pNode pn)
 {
     if (pn->left_node == nullptr && pn->right_node == nullptr) {
         std::cout << pn->lexem;
@@ -57,22 +55,22 @@ void print_expr(pNode pn)
     if (pn->type.second == "BR") {
         std::cout << ']';
     }
-    std::cout << "\t:" << pn->type.second << std::endl;
 }
 
-void print_tree(pNode pn)
+void Tree::print_tree(pNode pn)
 {
     if (pn == nullptr) {return;}
-    if ((pn->left_node == nullptr) && (pn->right_node == nullptr) ) {
-        //std::cout << lexem << "\t:" << type << std::endl;
-        return;
-    }
+    if ((pn->left_node == nullptr) && (pn->right_node == nullptr) ) { return; }
     print_tree(pn->left_node);
     print_expr(pn->left_node);
     std::cout << "\t:" << pn->left_node->type.second << std::endl;
     print_tree(pn->right_node);
     print_expr(pn->right_node);
     std::cout << "\t:" << pn->right_node->type.second << std::endl;
+    if (pn == root) {
+        print_expr(pn);
+        std::cout << "\t:" << pn->right_node->type.second << std::endl;
+    }
 }
 
 class Parser
@@ -108,7 +106,7 @@ public:
     {
         S();
         std::cout << "Correct!" << std::endl;
-        print_tree(abstract_syntax_tree.root);
+        abstract_syntax_tree.print_tree(abstract_syntax_tree.root);
     }
 };
 
@@ -124,7 +122,7 @@ void Parser::Expr()
     if (c_type == LEX_NUM || c_type == LEX_ID) {
         auto left_type = Subexpr();
         while (c_type == LEX_ASSIGN) {
-            if (left_type.first) {
+            if (left_type.first == true) {
                 std::string h = "Assign to const value in position ";
                 h.append(std::to_string(c_position));
                 throw std::runtime_error(h);
@@ -136,7 +134,7 @@ void Parser::Expr()
             }
             main_assign_sequence++;
             gl();
-            Subexpr();
+            left_type = Subexpr();
             main_assign_sequence--;
             if (main_assign_sequence == 0 && first_elem) {
                 abstract_syntax_tree.cur_root = abstract_syntax_tree.root;
@@ -159,6 +157,7 @@ std::pair<bool, std::string> Parser::Subexpr()
         } else {
             abstract_syntax_tree.add_right(n);
         }
+        gl();
         return std::make_pair(true, "Int");
     } else if (c_type == LEX_ID) {
         type = check_id();
@@ -394,4 +393,18 @@ int main() {
     } catch (std::runtime_error &re) {
         std::cout << re.what() << std::endl;
     }*/
+    /*Tree a;
+    Node n({0, "int"}, "i");
+    Node k({0, "BR"}, "[]");
+    Node l({0, "int"}, "j");
+    Node m({0, "AS"}, "=");
+    Node b({0, "int"}, "k");
+    a.first_node(n);
+    a.add_operator(k);
+    a.root = a.cur_root;
+    a.add_right(m);
+    a.cur_root = a.cur_root->right_node;
+    a.add_left(l);
+    a.add_right(b);
+    a.print_tree(a.root);*/
 }
