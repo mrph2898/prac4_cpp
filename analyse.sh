@@ -57,7 +57,7 @@ then
                         num=$[ $num + 1 ]
                         if [ $num -eq 8 ]
                         then
-                            echo -e "\e[32m 8 tests was passed \e[0m"
+                            echo -e "\e[32m 8 tests were passed \e[0m"
                         elif [ $num -eq 17 ]
                         then
                             echo -e "\e[32m 8 tests yet \e[0m"
