@@ -19,29 +19,28 @@ struct Node
 
 struct Tree
 {
-    //pNode cur_root;
     pNode root;
     Tree() : root(nullptr) {}
-    void print_expr(pNode);
-    void print_tree(pNode);
+    void print_expr(pNode &);
+    void print_tree(pNode &);
 };
 
-void add_operator(pNode cur_root, Node &n)
+void add_operator(pNode &cur_root, Node &n)
 {
     n.left_node = cur_root;
     cur_root = std::make_shared<Node>(n);
 }
-void add_left(pNode cur_root, Node &n)
+void add_left(pNode &cur_root, Node &n)
 {
     (*cur_root).left_node = std::make_shared<Node>(n);
 }
-void add_right(pNode cur_root, Node &n)
+void add_right(pNode &cur_root, Node &n)
 {
     (*cur_root).right_node = std::make_shared<Node>(n);
 }
-void first_node(pNode cur_root, Node &n) { cur_root = std::make_shared<Node>(n); }
+void first_node(pNode &cur_root, Node &n) { cur_root = std::make_shared<Node>(n); }
 
-void Tree::print_expr(pNode pn)
+void Tree::print_expr(pNode &pn)
 {
     if (pn->left_node == nullptr && pn->right_node == nullptr) {
         std::cout << pn->lexem;
@@ -59,14 +58,14 @@ void Tree::print_expr(pNode pn)
     }
 }
 
-void Tree::print_tree(pNode pn)
+void Tree::print_tree(pNode &pn)
 {
     if (pn == nullptr) { return; }
     if ((pn->left_node == nullptr) && (pn->right_node == nullptr) ) {
         if (pn == root) {
             std::cout<< pn->lexem << "\t:" << pn->type.second << std::endl;
-            return;
         }
+        return;
     }
     print_tree(pn->left_node);
     print_expr(pn->left_node);
@@ -88,8 +87,6 @@ class Parser
     type_of_lex c_type;
     long c_position;
     Tree abstract_syntax_tree;
-    //bool first_elem = true;
-    //long main_assign_sequence = 0;
 public:
     Parser(const TokenSequence &tok_s) : ts(tok_s)
     {
@@ -121,6 +118,11 @@ void Parser::S()
 {
     if (c_type != LEX_END) {
         Node r = Expr();
+        if (c_type != LEX_END) {
+            std::string h = "Incorrect expression after position ";
+            h.append(std::to_string(c_position));
+            throw std::runtime_error(h);
+        }
         abstract_syntax_tree.root = std::make_shared<Node>(r);
     }
 }
@@ -139,11 +141,6 @@ Node Parser::Expr()
             }
             Node u(std::make_pair(0, n.second.type.second), 'A');
             add_operator(c_root, u);
-            /*abstract_syntax_tree.add_operator(n);
-            if (main_assign_sequence == 0 && first_elem) {
-                abstract_syntax_tree.root = abstract_syntax_tree.cur_root;
-            }*/
-            //main_assign_sequence++;
             gl();
             auto r_n = Subexpr();
             if (c_root->type.second != r_n.second.type.second) {
@@ -152,10 +149,6 @@ Node Parser::Expr()
                 throw std::runtime_error(h);
             }
             add_right(c_root, r_n.second);
-            //main_assign_sequence--;
-            /*if (main_assign_sequence == 0 && first_elem) {
-                abstract_syntax_tree.cur_root = abstract_syntax_tree.root;
-            }*/
         }
     } else {
         std::string h = "Incorrect expression in position ";
@@ -171,46 +164,30 @@ std::pair<bool, Node> Parser::Subexpr()
     std::pair<long, std::string> type;
     if (c_type == LEX_NUM) {
         Node n(std::make_pair<long, std::string>(0, "Int"), 'N', c_lexem);
-        /*if (abstract_syntax_tree.root == nullptr) {
-            abstract_syntax_tree.first_node(n);
-        } else {
-            abstract_syntax_tree.add_right(n);
-        }*/
         gl();
         return std::make_pair(true, n);
     } else if (c_type == LEX_ID) {
         type = check_id();
         Node n(type, 'N', c_lexem);
-        /*if (abstract_syntax_tree.cur_root == nullptr) {
-            abstract_syntax_tree.first_node(n);
-        } else {
-            abstract_syntax_tree.add_right(n);
-            abstract_syntax_tree.cur_root = abstract_syntax_tree.cur_root->right_node;
-        }*/
         c_root = std::make_shared<Node>(n);
         gl();
-//        if (c_type == LEX_END) { return false; }
         while (c_type == LEX_LBR) {
-            //first_elem = false;
             if (c_root->type.first == 0) {
                 std::string h = "Can't take an index in position ";
                 h.append(std::to_string(c_position));
                 throw std::runtime_error(h);
             }
             std::string new_type = c_root->type.second;
-            new_type.erase(0, new_type.find('-'));
             std::string t;
             if ((c_root->type.first - 1) != 0) {
+                new_type.erase(0, new_type.find('-'));
                 t = std::to_string(c_root->type.first - 1);
                 t.append(new_type);
             } else {
-                t = new_type.erase(0, (new_type.find('f') + 1));
+                t = new_type.erase(0, (new_type.find('f') + 2));
             }
             Node u(std::make_pair((c_root->type.first - 1), t), 'B');
             add_operator(c_root, u);
-            /*if (main_assign_sequence == 0) {
-                abstract_syntax_tree.root = abstract_syntax_tree.cur_root;
-            }*/
             gl();
             Node sub_exp = Expr();
             if (c_type != LEX_RBR) {
@@ -219,16 +196,10 @@ std::pair<bool, Node> Parser::Subexpr()
                 throw std::runtime_error(h);
             }
             if (sub_exp.type.second != "Int") {
-                std::string h = "Indexing by not-int expression in position ";
+                std::string h = "Indexing by not-int expression in brackets, that is ended in position ";
                 h.append(std::to_string(c_position));
                 throw std::runtime_error(h);
             }
-            /*if (main_assign_sequence == 1) {
-                abstract_syntax_tree.cur_root = abstract_syntax_tree.root->right_node;
-            } else if (main_assign_sequence == 0) {
-                abstract_syntax_tree.cur_root = abstract_syntax_tree.root;
-            }
-            first_elem = true;*/
             add_right(c_root, sub_exp);
             gl();
         }
