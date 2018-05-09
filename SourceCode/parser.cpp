@@ -30,15 +30,10 @@ void add_operator(pNode &cur_root, Node &n)
     n.left_node = cur_root;
     cur_root = std::make_shared<Node>(n);
 }
-void add_left(pNode &cur_root, Node &n)
-{
-    (*cur_root).left_node = std::make_shared<Node>(n);
-}
 void add_right(pNode &cur_root, Node &n)
 {
     (*cur_root).right_node = std::make_shared<Node>(n);
 }
-void first_node(pNode &cur_root, Node &n) { cur_root = std::make_shared<Node>(n); }
 
 void Tree::print_expr(pNode &pn)
 {
@@ -148,12 +143,9 @@ Node Parser::Expr()
                 h.append(std::to_string(c_position));
                 throw std::runtime_error(h);
             }
+            if (r_n.first == true) { n.first = true; }
             add_right(c_root, r_n.second);
         }
-    } else {
-        std::string h = "Incorrect expression in position ";
-        h.append(std::to_string(c_position));
-        throw std::runtime_error(h);
     }
     return *c_root;
 }
@@ -203,10 +195,6 @@ std::pair<bool, Node> Parser::Subexpr()
             add_right(c_root, sub_exp);
             gl();
         }
-    } else {
-        std::string h = "Incorrect expression in position ";
-        h.append(std::to_string(c_position));
-        throw std::runtime_error(h);
     }
     return std::make_pair(false, *c_root) ;
 }
@@ -374,7 +362,7 @@ std::pair<long, std::string> Parser::check_id()
                 break;
             case 'f':
             default:
-                h = "Incorrect expression in position ";
+                h = "Nondeterminate expression in position ";
                 h.append(std::to_string(c_position));
                 throw std::runtime_error(h);
             }
@@ -390,7 +378,11 @@ std::pair<long, std::string> Parser::check_id()
         h.append(std::to_string(c_position));
         throw std::runtime_error(h);
     }
-    if (undef_brackets) {}
+    if (undef_brackets) {
+        h = "Nondeterminate expression in position ";
+        h.append(std::to_string(c_position));
+        throw std::runtime_error(h);
+    }
     return std::make_pair(dim, type);
 }
 
@@ -402,23 +394,4 @@ int main() {
     } catch (std::runtime_error &re) {
         std::cout << re.what() << std::endl;
     }
-/*    try {
-        p.check_id();
-    } catch (std::runtime_error &re) {
-        std::cout << re.what() << std::endl;
-    }*/
-    /*Tree a;
-    Node n({0, "int"}, "i");
-    Node k({0, "BR"}, "[]");
-    Node l({0, "int"}, "j");
-    Node m({0, "AS"}, "=");
-    Node b({0, "int"}, "k");
-    a.first_node(n);
-    a.add_operator(k);
-    a.root = a.cur_root;
-    a.add_right(m);
-    a.cur_root = a.cur_root->right_node;
-    a.add_left(l);
-    a.add_right(b);
-    a.print_tree(a.root);*/
 }
