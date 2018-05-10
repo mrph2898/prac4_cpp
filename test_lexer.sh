@@ -69,9 +69,9 @@ then
                     if [ ! -e $TESTR ]
                     then
                         mkdir $TESTR
-                        mkdir $TESTRES
-                        mkdir $TESTVAL
                     fi
+                    mkdir $TESTRES
+                    mkdir $TESTVAL
                     if [ ! -z $2 ]
                     then
                         ./lcov/bin/lcov --directory $OBJDIR --zerocounters

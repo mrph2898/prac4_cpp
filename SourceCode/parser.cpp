@@ -85,7 +85,8 @@ class Parser
 public:
     Parser(const TokenSequence &tok_s) : ts(tok_s)
     {
-        ti = ts.begin();
+        TokenIterator cur_it = ts.begin();
+        ti = cur_it;
         c_lexem = (*ti).get_lexem();
         c_type = (*ti).get_type();
         c_position = (*ti).get_pos();
@@ -205,7 +206,6 @@ std::pair<long, std::string> Parser::check_id()
     auto lex_it = c_lexem.begin();
     std::string type;
     long dim = 0;
-    bool undef_array = false;
     long dim_in_func;
     char state = 'B';
     bool undef_brackets = false;
@@ -228,7 +228,6 @@ std::pair<long, std::string> Parser::check_id()
             case 'a':
                 dim++;
                 state = 'A';
-                undef_array = true;
                 break;
             case 'f':
                 type = "Function";
@@ -283,7 +282,6 @@ std::pair<long, std::string> Parser::check_id()
                 h.append(std::to_string(c_position));
                 throw std::runtime_error(h);
             }
-            undef_array = false;
             lex_it++;
             c_position++;
             break;
@@ -372,11 +370,6 @@ std::pair<long, std::string> Parser::check_id()
             undef_brackets = true;
             break;
         }
-    }
-    if (undef_array) {
-        h = "Undefined array in position ";
-        h.append(std::to_string(c_position));
-        throw std::runtime_error(h);
     }
     if (undef_brackets) {
         h = "Nondeterminate expression in position ";

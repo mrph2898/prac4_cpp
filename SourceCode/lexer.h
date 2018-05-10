@@ -49,16 +49,16 @@ public:
         int c;
         type_of_lex type;
         std::string lexem;
-        long position;
+        long position = position_of_cin;
         char state = 'S';
         while (state != 'H') {
             c = std::cin.peek();
             switch (state) {
             case 'S':
                 c = std::cin.get();
-                position_of_cin++;
+                position++;
                 if (!isspace(c)){
-                    position = position_of_cin;
+                    //position = position_of_cin;
                     if (isdigit(c)) {
                         lexem.push_back(c);
                         state = 'N';
@@ -89,6 +89,7 @@ public:
                         throw std::runtime_error(h);
                     }
                 }
+                position_of_cin = position;
                 break;
             case 'N':
                 if (isdigit(c)) {
@@ -115,15 +116,18 @@ public:
         return Token(type, lexem, position);
     }
     TokenIterator() {}
-    TokenIterator(bool eof) : is_it_eof(eof)
+    TokenIterator(bool eof)
     {
         if (!eof) {
-            token = get_token();
+            Token cur_tok = get_token();
+            token = cur_tok;
+            is_it_eof = eof;
         }
     }
     Token operator *() const noexcept  { return token; }
     TokenIterator& operator ++() {
-        token = get_token();
+        Token cur_tok = get_token();
+        token = cur_tok;
         return *this;
     }
     TokenIterator& operator ++(int) noexcept {
